@@ -1,0 +1,522 @@
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --plum:       #2D1B4E;
+            --violet:     #4A2C7A;
+            --grape:      #6B3FA0;
+            --lavender:   #9B72CF;
+            --mist:       #C9A8F0;
+            --fog:        #EDE3FA;
+            --white:      #FAF7FF;
+            --accent:     #D4A1FF;
+            --danger:     #FF6B9D;
+            --danger-dark:#C94074;
+            --glass:      rgba(255,255,255,0.07);
+            --glass-border: rgba(255,255,255,0.15);
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--plum);
+            background-image:
+                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(107,63,160,0.6) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 80% at 80% 90%, rgba(155,114,207,0.4) 0%, transparent 55%),
+                radial-gradient(ellipse 40% 40% at 60% 30%, rgba(212,161,255,0.15) 0%, transparent 50%);
+            font-family: 'Noto Sans KR', sans-serif;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 48px 16px 80px;
+        }
+
+        /* Floating orbs */
+        body::before, body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            filter: blur(60px);
+            opacity: 0.25;
+            animation: drift 12s ease-in-out infinite alternate;
+        }
+        body::before {
+            width: 400px; height: 400px;
+            background: var(--grape);
+            top: -100px; left: -100px;
+        }
+        body::after {
+            width: 300px; height: 300px;
+            background: var(--mist);
+            bottom: -80px; right: -80px;
+            animation-delay: -6s;
+        }
+        @keyframes drift {
+            from { transform: translate(0, 0) scale(1); }
+            to   { transform: translate(40px, 30px) scale(1.1); }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 620px;
+            position: relative;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header-eyebrow {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--mist);
+            opacity: 0.7;
+            margin-bottom: 12px;
+        }
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.2rem, 6vw, 3.2rem);
+            font-weight: 700;
+            color: var(--white);
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+        .header h1 span {
+            background: linear-gradient(135deg, var(--mist), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header-sub {
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--lavender);
+            opacity: 0.8;
+        }
+
+        /* Input card */
+        .input-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 20px 22px;
+            margin-bottom: 28px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .input-row input[type="text"] {
+            flex: 1;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            padding: 13px 18px;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 14px;
+            color: var(--white);
+            outline: none;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+        }
+        .input-row input[type="text"]::placeholder { color: rgba(201,168,240,0.4); }
+        .input-row input[type="text"]:focus {
+            border-color: var(--lavender);
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 0 0 3px rgba(155,114,207,0.2);
+        }
+        .btn-add {
+            background: linear-gradient(135deg, var(--grape), var(--lavender));
+            border: none;
+            border-radius: 12px;
+            padding: 13px 22px;
+            color: white;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+            box-shadow: 0 4px 20px rgba(107,63,160,0.5);
+        }
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(107,63,160,0.7);
+            filter: brightness(1.1);
+        }
+        .btn-add:active { transform: translateY(0); }
+
+        /* Stats bar */
+        .stats-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding: 0 4px;
+        }
+        .stats-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--lavender);
+            letter-spacing: 0.05em;
+        }
+        .stats-count {
+            background: linear-gradient(135deg, var(--grape), var(--lavender));
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.05em;
+        }
+
+        /* Todo list */
+        .todo-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .todo-item {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            padding: 16px 18px;
+            gap: 14px;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s, background 0.2s;
+            animation: slideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+        }
+        .todo-item:hover {
+            transform: translateX(4px);
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(155,114,207,0.4);
+            box-shadow: 0 6px 28px rgba(0,0,0,0.3);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(12px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .todo-bullet {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--lavender), var(--accent));
+            flex-shrink: 0;
+            box-shadow: 0 0 8px rgba(212,161,255,0.6);
+        }
+
+        .todo-text {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--fog);
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        /* Hidden form input */
+        input[type="hidden"] { display: none; }
+
+        .btn-done {
+            background: transparent;
+            border: 1px solid rgba(255,107,157,0.4);
+            border-radius: 10px;
+            padding: 7px 14px;
+            color: var(--danger);
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.04em;
+            transition: background 0.2s, border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .btn-done:hover {
+            background: rgba(255,107,157,0.15);
+            border-color: var(--danger);
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px rgba(255,107,157,0.3);
+        }
+        .btn-done:active { transform: scale(0.97); }
+
+        /* Edit button */
+        .btn-edit {
+            background: transparent;
+            border: 1px solid rgba(155,114,207,0.4);
+            border-radius: 10px;
+            padding: 7px 14px;
+            color: var(--lavender);
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.04em;
+            transition: background 0.2s, border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .btn-edit:hover {
+            background: rgba(155,114,207,0.15);
+            border-color: var(--lavender);
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px rgba(155,114,207,0.3);
+        }
+        .btn-edit:active { transform: scale(0.97); }
+
+        /* Modal overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(20, 8, 40, 0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        .modal {
+            background: linear-gradient(145deg, #3a2260, #2a1850);
+            border: 1px solid rgba(155,114,207,0.35);
+            border-radius: 24px;
+            padding: 32px 28px 28px;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+            animation: popIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.9) translateY(16px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-label {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--mist);
+            opacity: 0.6;
+            margin-bottom: 10px;
+        }
+        .modal-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 24px;
+        }
+        .modal-input {
+            width: 100%;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(155,114,207,0.3);
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 14px;
+            color: var(--white);
+            outline: none;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+            margin-bottom: 20px;
+        }
+        .modal-input::placeholder { color: rgba(201,168,240,0.35); }
+        .modal-input:focus {
+            border-color: var(--lavender);
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 0 0 3px rgba(155,114,207,0.2);
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .btn-modal-cancel {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 11px 22px;
+            color: rgba(201,168,240,0.6);
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .btn-modal-cancel:hover {
+            background: rgba(255,255,255,0.07);
+            color: var(--fog);
+        }
+        .btn-modal-save {
+            background: linear-gradient(135deg, var(--grape), var(--lavender));
+            border: none;
+            border-radius: 12px;
+            padding: 11px 26px;
+            color: white;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+            box-shadow: 0 4px 20px rgba(107,63,160,0.5);
+        }
+        .btn-modal-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(107,63,160,0.7);
+            filter: brightness(1.1);
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: rgba(201,168,240,0.4);
+        }
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 14px;
+            display: block;
+            filter: grayscale(0.3);
+        }
+        .empty-state p {
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 48px;
+            font-size: 11px;
+            color: rgba(155,114,207,0.45);
+            letter-spacing: 0.08em;
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(155,114,207,0.3), transparent);
+            margin: 24px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <div class="header">
+            <p class="header-eyebrow">✦ My Workspace</p>
+            <h1>To-do <span>List</span></h1>
+            <p class="header-sub">with Django</p>
+        </div>
+
+        <div class="input-card">
+            <form action="./createTodo" method="POST" class="input-row">
+                {% csrf_token %}
+                <input id="todoContent" name="todoContent" type="text" placeholder="오늘 할 일을 입력하세요...">
+                <button class="btn-add" type="submit">＋ 추가</button>
+            </form>
+        </div>
+
+        <div class="stats-bar">
+            <span class="stats-label">남은 할 일</span>
+            <span class="stats-count">{{ todos|length }} 개</span>
+        </div>
+
+        <div class="todo-list">
+            {% for todo in todos %}
+            <div class="todo-item">
+                <div class="todo-bullet"></div>
+                <span class="todo-text">{{ todo.content }}</span>
+                <button type="button" class="btn-edit"
+                    onclick="openEditModal('{{ todo.id }}', '{{ todo.content|escapejs }}')"
+                >✎ 수정</button>
+                <form action="./deleteTodo" method="GET" style="display:inline;">
+                    <input type="hidden" name="todoNum" value="{{ todo.id }}">
+                    <button type="submit" class="btn-done">✓ 완료</button>
+                </form>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <span class="empty-icon">🌙</span>
+                <p>할 일이 없어요.<br>위에서 새로운 할 일을 추가해보세요!</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="footer">
+            실전예제로 배우는 Django &nbsp;·&nbsp; Project 1 — TodoList
+        </div>
+
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="editModal" onclick="closeOnOverlay(event)">
+        <div class="modal">
+            <p class="modal-label">✦ 수정하기</p>
+            <h2 class="modal-title">할 일 내용 수정</h2>
+            <form id="editForm" action="./editTodo" method="POST">
+                {% csrf_token %}
+                <input type="hidden" id="editTodoNum" name="todoNum" value="">
+                <input
+                    type="text"
+                    id="editTodoContent"
+                    name="todoContent"
+                    class="modal-input"
+                    placeholder="수정할 내용을 입력하세요..."
+                >
+                <div class="modal-actions">
+                    <button type="button" class="btn-modal-cancel" onclick="closeEditModal()">취소</button>
+                    <button type="submit" class="btn-modal-save">저장하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openEditModal(id, content) {
+            document.getElementById('editTodoNum').value = id;
+            document.getElementById('editTodoContent').value = content;
+            document.getElementById('editModal').classList.add('active');
+            setTimeout(() => document.getElementById('editTodoContent').focus(), 100);
+        }
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+        }
+        function closeOnOverlay(e) {
+            if (e.target === document.getElementById('editModal')) closeEditModal();
+        }
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeEditModal();
+        });
+    </script>
+</body>
+</html>
