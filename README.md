@@ -10,17 +10,17 @@ Django를 이용하여 만든 간단한 To-Do List 웹 애플리케이션
 사용자는 할 일을 등록하고, 수정하거나 완료 상태로 변경하면서 간단하게 일정을 관리
 
 ## ⚙️ 기술 스택
-- Backend
+Backend
 
-Python
+- Python
 
-Django
+- Django
 
-SQLite
+- SQLite
 
-- Frontend
+Frontend
 
-Claude AI (UI 코드 생성)
+- Claude AI (UI 코드 생성)
 
 
 ## ✨ 주요 기능
